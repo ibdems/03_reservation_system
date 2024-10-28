@@ -1,0 +1,107 @@
+{% extends "reservation/base.html" %}
+{% block title %}Ressources{% endblock title %}
+{% block content %}
+<!-- Page Title -->
+<div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0">Des ressources à reserver</h1>
+        <nav class="breadcrumbs">
+            <ol>
+                <li><a href="index.html">Accueil</a></li>
+                <li class="current">Ressources</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Services Section -->
+<section id="services" class="services section light-background">
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+        <h2>Ressources</h2>
+        <p>Trouver une ressource, voyer plus de details et reserver</p>
+    </div><!-- End Section Title -->
+    {% if messages %}
+      {% for message in messages %}
+      <div class=" text-center alert alert-info">
+          {{ message }}
+      </div>
+
+      {% endfor %}
+      {% endif %}
+    <div class="container">
+        <div class="row justify-content-center align-items-center mb-4">
+            <form action="{% url 'ressource' %}" method="get"
+                class="d-flex flex-wrap justify-content-center align-items-center gy-3">
+                <!-- Champ de recherche -->
+                <div class="col-7 col-lg-4 mb-2">
+                    <input type="text" class="form-control border-secondary" name="search_ressource"
+                        placeholder="Ex: Salle de conférence" value="{{ request.GET.search_ressource }}">
+                </div>
+
+                <!-- Checkbox pour la disponibilité -->
+                <div class="col-5 col-lg-2 mb-2 d-flex justify-content-center align-items-center">
+                    <input type="checkbox" name="available" id="available"
+                        class="form-check-input border-secondary me-2" {% if request.GET.available %}checked{% endif %}>
+                    <label for="available">Disponible</label>
+                </div>
+
+                <!-- Bouton de recherche -->
+                <div class="col-5  col-lg-2 mb-2">
+                    <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+                </div>
+
+                <!-- Bouton pour réinitialiser les filtres -->
+                <div class="col-5 offset-1 col-lg-2 mb-2">
+                    <a href="{% url 'ressource' %}" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <div class="row gy-4">
+            {% for ressource in ressources %}
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="service-item position-relative">
+                    <div class="icon">
+                        {% if ressource.available %}
+                        <i class="bi bi-check-circle text-success" title="Disponible"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle text-danger" title="Indisponible"></i>
+                        {% endif %}
+                    </div>
+                    {% if ressource.image %}
+                    <img src="{{ ressource.image.url }}" alt="{{ ressource.name }}" class="img-fluid">
+                    {% else %}
+                    <img src="/path/to/default/image.jpg" alt="{{ ressource.name }}" class="img-fluid">
+                    {% endif %}
+                    <h3>{{ ressource.name }}</h3>
+                    <div class="row">
+                        <div class="col text-start fw-bold">Capacité</div>
+                        <div class="col text-start fw-bold">Adresse</div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-start">{{ ressource.capacity }} personnes</div>
+                        <div class="col text-start">{{ ressource.adresse }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-start fw-bold">Conditions: {{ressource.condition.count}}</div>
+                        <div class="col text-start fw-bold">Equipements: {{ressource.equipement.count}}</div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-7 col-lg-8"></div>
+                        <div class="col align-self-end">
+                            <a href="{% url 'detail_reservation' ressource.uid %}"
+                                class="btn btn-primary stretched-link">Voir plus</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div id="calendar"></div>
+    </div>
+</section><!-- /Services Section -->
+{% endblock content %}

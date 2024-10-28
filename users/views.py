@@ -4,7 +4,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.urls import reverse_lazy
 from django.views import View
 from django.contrib.auth.tokens import default_token_generator
-from config.utils.send_emails import send_mail_activation
+from config.utils.send_emails import send_mail_activation, send_mail_reset_password
 from users.models import User
 from .forms import CustomCreateUserForm, CustomLoginForm
 from django.views.generic import CreateView
@@ -57,11 +57,17 @@ class PasswordResetView(PasswordResetView):
     template_name = 'registration/password_reset.html'
     post_reset_redirect = 'password_confirmation'
     
-    def get_success_url(self) -> str:
-        success_url =  super().get_success_url()
-        messages.success(self.request, "Vous avez recu un email de confirmation, Veuillez consulter votre boite mail")
-        success_url = reverse_lazy('reset_password')
-        return success_url
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        user = User.objects.filter(email=email).first()
+        if user:
+            send_mail_reset_password(user)
+            messages.success(self.request, "Vous avez recu un email de confirmation, Veuillez consulter votre boite mail")
+        else:
+            messages.error(self.request, "Cet email n'est associé à aucun utilisateur.")
+         
+        return render(self.request, 'registration/password_reset.html')
+    
 
 class CustomPasswordConfirmView(PasswordResetConfirmView):
     template_name = 'registration/password_confirm.html'

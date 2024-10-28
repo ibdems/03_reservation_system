@@ -1,0 +1,174 @@
+{% extends "reservation/base.html" %}
+{% block title %}Mes reservations{% endblock title %}
+{% block content %}
+<!-- Page Title -->
+<div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0">Mes reservations</h1>
+        <nav class="breadcrumbs">
+            <ol>
+                <li><a href="index.html">Accueil</a></li>
+                <li class="current">Mes reservations</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<style>
+    p{
+        margin-top: -5px;
+        margin-left: 5px;
+    }
+
+    .row {
+        margin-top: 5px;
+    }
+</style>
+{% if messages %}
+{% for message in messages %}
+<div class="text-center alert alert-info">
+    {{ message }}
+</div>
+
+{% endfor %}
+{% endif %}
+
+<!-- Services Section -->
+<section id="services" class="services section light-background">
+
+    <!-- Section Title -->
+    <div class="container section-title" data-aos="fade-up">
+        <h2>Mes reservations</h2>
+        <p>La liste de mes reservations effectué</p>
+    </div><!-- End Section Title -->
+    <div class="container">
+    <div class="row m-1">
+        <label for="">Trier par statut de réservation</label>
+        <div class="col-10 col-md-3">
+            <form method="get" action="{% url 'mesreservations' %}">
+                <select name="status_trie" id="status_trie" onchange="this.form.submit()" class="form-select border-secondary">
+                    <option value="tout" {% if request.GET.status_trie == 'tout' or not request.GET.status_trie %}selected{% endif %}>Tout</option>
+                    <option value="confirme" {% if request.GET.status_trie == 'confirme' %}selected{% endif %}>Confirmé</option>
+                    <option value="attente" {% if request.GET.status_trie == 'attente' %}selected{% endif %}>En attente</option>
+                    <option value="annule" {% if request.GET.status_trie == 'annule' %}selected{% endif %}>Annulé</option>
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+    </div>
+    <div class="container">
+
+        <div class="row">
+
+            {% for reservation in reservations %}
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="service-item position-relative text-start">
+                    <!-- Image de la ressource réservée -->
+                    {% if reservation.ressource.image %}
+                    <img src="{{ reservation.ressource.image.url }}" alt="{{ reservation.ressource.name }}"
+                        class="img-fluid">
+                    {% else %}
+                    <img src="/path/to/default/image.jpg" alt="{{ reservation.ressource.name }}" class="img-fluid">
+                    {% endif %}
+
+                    <!-- Titre de la ressource réservée -->
+                    <h3 class="text-center">{{ reservation.ressource.name }}</h3>
+
+                    <!-- Description et Détails de la ressource -->
+                    <p class="text-start">{{ reservation.ressource.description }}</p>
+                    <div class="row">
+                        <div class="col">
+                            <strong>Capacité :</strong>
+                            <p> {{ reservation.ressource.capacity }}personnes</p>
+                        </div>
+                        <div class="col">
+                            <strong>Adresse :</strong>
+                            <p> {{ reservation.ressource.adresse }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <strong>Date de début :</strong>
+                            <p> {{ reservation.start_time|date:"d M Y H:i" }}</p>
+                        </div>
+                        <div class="col">
+                            <strong>Date de fin :</strong>
+                            <p> {{ reservation.end_time|date:"d M Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-12 col-md-5 mb-2 mb-md-0">
+                            <p class="m-0"><strong>Statut :</strong> {{ reservation.get_status_display }}</p>
+                        </div>
+                        
+                        {% if reservation.end_time > now and reservation.status != 'Annulé' %}
+                        <div class="col-4 col-md">
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#update-{{reservation.id}}">Modifier</button>
+                        </div>
+                        <div class="col">
+                            <a href="{% url 'cancelReservation' reservation.uid %}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')">Annuler</a>
+                        </div>
+                        {% endif %}
+                    </div>  
+                </div>
+            </div>
+            <div
+              class="modal fade"
+              id="update-{{ reservation.id }}"
+              tabindex="-1"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">
+                      Modifier votre reservation
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <form action="{% url 'update_reservation' %}" method="post">
+                    <div class="modal-body">
+                      {% csrf_token %}
+                      <input type="hidden" name="reservation_id" value="{{ reservation.id }}" />
+                        <label for="start_time">Date de début</label>
+                        <input type="datetime-local" name="start_time" id="start_time" class="form-control" value="{{ reservation.start_time|date:"Y-m-d\TH:i" }}" />
+                        <label for="end_time">Date de fin</label>
+                        <input type="datetime-local" name="end_time" id="end_time" class="form-control" value="{{ reservation.end_time|date:"Y-m-d\TH:i" }}" />
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Fermer
+                      </button>
+                      <button type="submit" class="btn btn-primary">
+                        Enregistrer
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+
+
+
+        </div>
+        
+
+    </div>
+
+</section><!-- /Services Section -->
+
+{% endblock content %}

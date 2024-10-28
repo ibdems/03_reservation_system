@@ -21,3 +21,20 @@ def send_mail_activation(user):
     send_mail(
         subject,message, 'reservation03@exemple.com', [user.email], fail_silently=False
     )
+
+def send_mail_reset_password(user):
+    subject= "Reinitialisation de votre mot de passe"
+    uid = urlsafe_base64_encode(force_bytes(user.id))
+    token = default_token_generator.make_token(user)
+    message = render_to_string(
+        'registration/reset_password.html',
+        {
+            'user': user,
+            'uid': uid,
+            'token': token,
+            'domain': settings.DOMAIN_URL
+        }
+    )
+    send_mail(
+        subject,message, 'reservation03@exemple.com', [user.email], fail_silently=False
+    )

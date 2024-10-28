@@ -1,0 +1,178 @@
+{% extends "reservation/base.html" %}
+{% block title %}Detail Ressource{% endblock title %} 
+{% block content %}
+<!-- Page Title -->
+<div class="page-title light-background">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0">Detail de la ressource</h1>
+    <nav class="breadcrumbs">
+      <ol>
+        <li><a href="{% url 'index' %}">Accueil</a></li>
+        <li class="current">Detail Reservation</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<!-- End Page Title -->
+ {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-{% if message.tags == success %}success{% else %}danger{% endif %}">
+          {{ message }}
+      </div>
+
+      {% endfor %}
+      {% endif %}
+
+<!-- Portfolio Details Section -->
+<section id="portfolio-details" class="portfolio-details section">
+  <div class="container" data-aos="fade-up">
+    <div class="portfolio-details-slider swiper init-swiper">
+      <div class="swiper-wrapper align-items-center">
+        <div class="swiper-slide">
+          {% if ressource.image %}
+          <img src="{{ressource.image.url}}" alt="" />
+          {% else %}
+          <img src="https://placehold.co/600x600" alt="" />
+
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-between gy-4 mt-4">
+      <div class="col-lg-8" data-aos="fade-up">
+        <div class="portfolio-description">
+          <h2>{{ressource.name}}</h2>
+          <p>{{ressource.description}}</p>
+          {% if ressource.equipement.count > 0 %}
+          <h4>Equipement Associées</h4>
+          {% for equipement in ressource.equipement.all %}
+            <ul>
+              <li>{{equipement.name}}</li>
+            </ul>
+          {% endfor %}
+          {% endif %}
+          {% if ressource.condition.count > 0 %}
+          <h4>Conditions d'utilisations</h4>
+          {% for condition in ressource.condition.all %}
+            <ul>
+              <li>{{condition.name}}</li>
+            </ul>
+          {% endfor %}
+          {% endif %}
+          <h3>Disponibilités</h3>
+          <ul>
+            {% for disponibilite in ressource.disponibilite.all %}
+            <li>
+              <strong>Du :</strong> {{ disponibilite.start_date|date:"d M Y H:i"}} <strong>au :</strong> 
+              {{ disponibilite.end_date|date:"d M Y H:i" }} 
+              {% if user.is_authenticated and ressource.available %}
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#reserver-{{ disponibilite.id }}"
+              >
+                Réserver
+              </button>
+              {% else %}
+              
+              <p>
+                Verifiez que la ressouce est disponible ou
+                <a href="{% url 'login' %}">Connectez-vous</a> 
+              </p>
+              {% endif %}
+            </li>
+
+            <!-- Modal (reste dans la boucle pour chaque disponibilité) -->
+            <div
+              class="modal fade"
+              id="reserver-{{ disponibilite.id }}"
+              tabindex="-1"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">
+                      Faire une réservation pour la disponibilité {{ disponibilite.id }}
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <form action="" method="post">
+                    <div class="modal-body">
+                      {% csrf_token %}
+                      <input
+                        type="hidden"
+                        name="disponibilite_id"
+                        value="{{disponibilite.id}}"
+                      />
+                      <label for="start_time">Date de début</label>
+                      <input
+                        type="datetime-local"
+                        name="start_time"
+                        id="start_time"
+                        class="form-control"
+                      />
+                      <label for="end_time">Date de fin</label>
+                      <input
+                        type="datetime-local"
+                        name="end_time"
+                        id="end_time"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Fermer
+                      </button>
+                      <button type="submit" class="btn btn-primary">
+                        Réserver
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="portfolio-info">
+          <h3>Information</h3>
+          <ul>
+            <li>
+              <strong>Proprietaire</strong> {{ressource.user.first_name|title}}
+              {{ressource.user.last_name|title}}
+            </li>
+            <li><strong>Capacite</strong>{{ressource.capacity}}</li>
+            <li>
+              <strong>Statut</strong>
+              {% if ressource.available %}Disponible {% else %}Non Disponible {% endif %}
+            </li>
+            <li>
+              <strong>Reservation</strong
+              >{{ressource.reservation_ressource.all.count}}fois
+            </li>
+            <!-- <li><a href="#" class="btn-visit align-self-start">Visit Website</a></li> {% -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /Portfolio Details Section -->
+
+{% endblock content %}
